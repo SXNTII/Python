@@ -1,433 +1,263 @@
-# ================================================================
-#                  THE PYTHON BOOK: GHOST CHASE
-# ================================================================
 
-# ======================== GAME SETTINGS ==========================
+import random
 
-TOTAL_QUESTIONS = 15
-STARTING_DISTANCE = 60
-CORRECT_MOVE = 10
-WRONG_MOVE = 20
+print("=" * 65)
+print("          THE PYTHON BOOK: ABANDONED BUILDING ESCAPE")
+print("=" * 65)
 
+# Player name
+name = input("\nEnter your name: ") or "Adventurer"
+
+print("\nYou are exploring an abandoned 17-story building.")
+print("You find THE PYTHON BOOK containing foundational Python lessons.")
+input("\nPress ENTER to open the book...")
+
+# Chapters
+chapters = {
+    "PRELIM": [
+        "Python was created by Guido van Rossum in 1991.",
+        "Python uses indentation. print() displays output."
+    ],
+    "MIDTERM": [
+        "input() takes user data.",
+        "Operators include +, -, /, //, and %."
+    ],
+    "FINALS": [
+        "Loops repeat code. for iterates over sequences,",
+        "while repeats as long as a condition is true."
+    ]
+}
+
+for chapter, lessons in chapters.items():
+    print("\n" + "=" * 65)
+    print(f"                    CHAPTER: {chapter}")
+    print("=" * 65)
+
+    for lesson in lessons:
+        print("- " + lesson)
+
+    command = "done" if chapter == "FINALS" else "next"
+
+    while input(f"\nType '{command}': ").lower() != command:
+        pass
+
+# Questions
+questions = [
+    ("PRELIM", "What is Python?",
+     ["A. Programming language", "B. Computer", "C. Website", "D. Game"], "A"),
+
+    ("PRELIM", "Which function displays output?",
+     ["A. input()", "B. print()", "C. len()", "D. int()"], "B"),
+
+    ("PRELIM", "Which symbol is used for single-line comments?",
+     ["A. //", "B. --", "C. #", "D. @"], "C"),
+
+    ("PRELIM", "Which data type represents whole numbers?",
+     ["A. str", "B. int", "C. float", "D. bool"], "B"),
+
+    ("PRELIM", "Which function captures user input?",
+     ["A. print()", "B. input()", "C. range()", "D. len()"], "B"),
+
+    ("MIDTERM", "Which keyword is used for conditional decisions?",
+     ["A. if", "B. print", "C. input", "D. import"], "A"),
+
+    ("MIDTERM", "Which keyword handles alternative outcomes?",
+     ["A. for", "B. else", "C. while", "D. break"], "B"),
+
+    ("MIDTERM", "Which loop iterates over sequences?",
+     ["A. print", "B. input", "C. for", "D. str"], "C"),
+
+    ("MIDTERM", "What numbers does range(5) generate?",
+     ["A. 1 to 5", "B. 0 to 4", "C. 0 to 5", "D. 1 to 4"], "B"),
+
+    ("MIDTERM", "Which operator checks value equality?",
+     ["A. =", "B. !=", "C. ==", "D. +="], "C"),
+
+    ("FINALS", "What does len() return?",
+     ["A. Number of items", "B. Random number", "C. String", "D. Loop"], "A"),
+
+    ("FINALS", "Which keyword stops a loop?",
+     ["A. stop", "B. break", "C. end", "D. exit"], "B"),
+
+    ("FINALS", "Which collection uses square brackets []?",
+     ["A. Tuple", "B. Dictionary", "C. List", "D. Set"], "C"),
+
+    ("FINALS", "What does append() do?",
+     ["A. Removes an item", "B. Adds an item", "C. Sorts a list", "D. Clears a list"], "B"),
+
+    ("FINALS", "Which keyword loads external modules?",
+     ["A. include", "B. using", "C. import", "D. add"], "C")
+]
+
+random.shuffle(questions)
+
+boss_question = (
+    "FINAL BOSS: What is Sir Jomar's username in MU Online?",
+    "JOMS927"
+)
+
+# Game variables
+player_floor = 3
+multo_floor = 1
+exit_floor = 17
 score = 0
-ghost_distance = STARTING_DISTANCE
+cleared_floors = [player_floor]
+escaped = False
 game_over = False
 
 
-# ======================== HELPER FUNCTIONS =======================
+def ask_question(question, choices=None):
+    print("\n" + question)
 
-def heading(title):
-    print("\n" + "=" * 64)
-    print(f"{title:^64}")
-    print("=" * 64)
+    if choices:
+        for choice in choices:
+            print(choice)
 
-
-def pause(message="Press ENTER to continue..."):
-    input(f"\n{message}")
+    return input("\nAnswer: ").strip().upper()
 
 
-def get_input(message):
-    return input(message).strip()
-
-
-def show_ghost():
-    print(r"""
-                 .-======-.
-               .'  o    o  '.
-              /       ^      \
-             |    .------.    |
-             |    '------'    |
-              \              /
-               '._        _.'
-                  /|    |\
-                 /_|____|_\
-    """)
-
-
-def get_valid_answer():
-    while True:
-        answer = input("\nYour answer (A-D): ").strip().upper()
-
-        if answer in ["A", "B", "C", "D"]:
-            return answer
-
-        print("Invalid choice! Please enter A, B, C, or D.")
-
-
-# ======================== INTRODUCTION ===========================
-
-def introduction():
-    heading("THE PYTHON BOOK: GHOST CHASE")
-
-    name = get_input("\nEnter your name: ")
-
-    if not name:
-        name = "Adventurer"
-
-    print(f"\nWelcome, {name}!")
-    print("\nYou are exploring an abandoned castle.")
-    print("Inside, you discover an ancient book...")
-    print("\n             THE PYTHON BOOK")
-    print("\nIt contains mysterious lessons about Python programming.")
-
-    pause("Press ENTER to open the book...")
-
-    return name
-
-
-# ======================== CHAPTERS ===============================
-
-def read_chapter(title, lessons, next_message):
-    heading(title)
-
-    for lesson in lessons:
-        print(f"• {lesson}")
-
-    while True:
-        action = input(f"\nType '{next_message}' to continue: ")
-        action = action.strip().lower()
-
-        if action == next_message:
-            break
-
-        print(f"Please type '{next_message}' to continue.")
-
-
-def learning_section():
-    read_chapter(
-        "CHAPTER 1: PRELIM",
-        [
-            "Python was created by Guido van Rossum in 1991.",
-            "Python uses indentation for code blocks.",
-            "print() displays output on the screen.",
-            "Variables store data and cannot start with a number."
-        ],
-        "next"
-    )
-
-    read_chapter(
-        "CHAPTER 2: MIDTERM",
-        [
-            "input() gets information from the user.",
-            "Math operators include +, -, *, and /.",
-            "// is floor division and % is the remainder.",
-            "Python follows PEMDAS in mathematical expressions."
-        ],
-        "next"
-    )
-
-    read_chapter(
-        "CHAPTER 3: FINALS",
-        [
-            "Loops are used to repeat instructions.",
-            "A for loop iterates over a sequence.",
-            "A while loop repeats while a condition is True."
-        ],
-        "done"
-    )
-
-
-# ======================== QUESTIONS ==============================
-
-questions = [
-    # PRELIM
-    {
-        "period": "PRELIM",
-        "q": "What is Python?",
-        "choices": [
-            "A. Programming language",
-            "B. Computer",
-            "C. Website",
-            "D. Game"
-        ],
-        "answer": "A"
-    },
-    {
-        "period": "PRELIM",
-        "q": "Which function displays output?",
-        "choices": [
-            "A. input()",
-            "B. print()",
-            "C. len()",
-            "D. int()"
-        ],
-        "answer": "B"
-    },
-    {
-        "period": "PRELIM",
-        "q": "Which symbol is used for comments?",
-        "choices": [
-            "A. //",
-            "B. **",
-            "C. #",
-            "D. @"
-        ],
-        "answer": "C"
-    },
-    {
-        "period": "PRELIM",
-        "q": "Which data type stores whole numbers?",
-        "choices": [
-            "A. str",
-            "B. int",
-            "C. float",
-            "D. bool"
-        ],
-        "answer": "B"
-    },
-    {
-        "period": "PRELIM",
-        "q": "Which function gets user input?",
-        "choices": [
-            "A. print()",
-            "B. input()",
-            "C. range()",
-            "D. len()"
-        ],
-        "answer": "B"
-    },
-
-    # MIDTERM
-    {
-        "period": "MIDTERM",
-        "q": "Which statement is used for decisions?",
-        "choices": [
-            "A. if",
-            "B. print",
-            "C. input",
-            "D. import"
-        ],
-        "answer": "A"
-    },
-    {
-        "period": "MIDTERM",
-        "q": "Which keyword is used when the if condition is false?",
-        "choices": [
-            "A. for",
-            "B. else",
-            "C. while",
-            "D. break"
-        ],
-        "answer": "B"
-    },
-    {
-        "period": "MIDTERM",
-        "q": "Which loop repeats a block of code?",
-        "choices": [
-            "A. print",
-            "B. input",
-            "C. for",
-            "D. str"
-        ],
-        "answer": "C"
-    },
-    {
-        "period": "MIDTERM",
-        "q": "What does range(5) generate?",
-        "choices": [
-            "A. 1 to 5",
-            "B. 0 to 4",
-            "C. 0 to 5",
-            "D. 1 to 4"
-        ],
-        "answer": "B"
-    },
-    {
-        "period": "MIDTERM",
-        "q": "Which operator checks equality?",
-        "choices": [
-            "A. =",
-            "B. !=",
-            "C. ==",
-            "D. +="
-        ],
-        "answer": "C"
-    },
-
-    # FINALS
-    {
-        "period": "FINALS",
-        "q": "What does len() return?",
-        "choices": [
-            "A. Number of items",
-            "B. A random number",
-            "C. A string",
-            "D. A loop"
-        ],
-        "answer": "A"
-    },
-    {
-        "period": "FINALS",
-        "q": "Which keyword creates a function?",
-        "choices": [
-            "A. function",
-            "B. def",
-            "C. make",
-            "D. create"
-        ],
-        "answer": "B"
-    },
-    {
-        "period": "FINALS",
-        "q": "Which collection uses square brackets?",
-        "choices": [
-            "A. Tuple",
-            "B. Dictionary",
-            "C. List",
-            "D. Set"
-        ],
-        "answer": "C"
-    },
-    {
-        "period": "FINALS",
-        "q": "What does append() do?",
-        "choices": [
-            "A. Removes an item",
-            "B. Adds an item",
-            "C. Sorts a list",
-            "D. Clears a list"
-        ],
-        "answer": "B"
-    },
-    {
-        "period": "FINALS",
-        "q": "Which keyword imports a module?",
-        "choices": [
-            "A. include",
-            "B. using",
-            "C. import",
-            "D. add"
-        ],
-        "answer": "C"
-    }
-]
-
-
-# ======================== GHOST CHASE ============================
-
-def show_area(index):
-    if index == 0:
-        heading("PRELIM: THE CASTLE ENTRANCE")
-        print("You enter the castle.")
-        print("A strange shadow follows you.")
-
-    elif index == 5:
-        heading("MIDTERM: THE DARK HALLWAY")
-        print("The hallway grows darker.")
-        print("You hear footsteps getting closer...")
-
-    elif index == 10:
-        heading("FINALS: THE LAST CORRIDOR")
-        print("The castle exit is finally visible!")
-        print("But the ghost is right behind you!")
-
-
-def show_question(index, item):
-    print("\n" + "-" * 64)
-    print(f"QUESTION {index + 1}/{TOTAL_QUESTIONS} [{item['period']}]")
-    print("-" * 64)
-
-    print(f"\nGhost Distance: {ghost_distance} meters")
-    print(f"Score: {score}/{TOTAL_QUESTIONS}")
-    print(f"\n{item['q']}")
-
-    for choice in item["choices"]:
-        print(choice)
-
-
-def update_ghost(correct):
-    global score, ghost_distance
-
-    if correct:
-        score += 1
-        ghost_distance += CORRECT_MOVE
-        print("\nCorrect! You move farther away from the ghost!")
-    else:
-        ghost_distance -= WRONG_MOVE
-        print("\nWrong answer!")
-        print("The ghost gets closer!")
-
-    print(f"\nGhost Distance: {max(0, ghost_distance)} meters")
-
-    if ghost_distance > 60:
-        print("The ghost is falling behind!")
-    elif ghost_distance > 30:
-        print("The ghost is getting closer!")
-    elif ghost_distance > 0:
-        print("WARNING! THE GHOST IS RIGHT BEHIND YOU!")
-
-
-def play_game():
-    global game_over, ghost_distance
-
-    heading("ESCAPE THE HAUNTED CASTLE")
-    print("Answer all 15 Python questions to escape!")
-    pause()
-
-    for index, item in enumerate(questions):
-        show_area(index)
-        show_question(index, item)
-
-        answer = get_valid_answer()
-        correct = answer == item["answer"]
-
-        update_ghost(correct)
-
-        if not correct:
-            print(f"Correct answer: {item['answer']}")
-
-        if ghost_distance <= 0:
-            game_over = True
-            heading("THE GHOST CAUGHT YOU!")
-            show_ghost()
-            print("The ghost has caught up with you!")
-            print("Your adventure ends inside the castle.")
-            break
-
-        pause("Press ENTER for the next question...")
-
-
-# ======================== FINAL RESULTS ==========================
-
-def show_results(name):
-    heading("ESCAPE RESULTS")
-
+def show_results():
+    print("\n" + "=" * 65)
+    print("                         FINAL RESULTS")
+    print("=" * 65)
     print(f"Player: {name}")
-    print(f"Final Score: {score}/{TOTAL_QUESTIONS}")
+    print(f"Final Score: {score}")
 
-    if not game_over:
-        heading("ESCAPE SUCCESSFUL!")
-        print("You answered all 15 questions!")
-        print("You finally reach the castle entrance.")
-        print("The ghost disappears into the darkness.")
-        print("You escaped with THE PYTHON BOOK!")
+    if escaped:
+        print("RESULT: SUCCESS!")
+        print("You escaped through the rooftop!")
     else:
-        heading("GAME OVER")
-        print("The ghost caught you inside the castle.")
-        print("THE PYTHON BOOK remains behind.")
+        print("RESULT: DEFEAT!")
+        print("You were trapped inside the abandoned building.")
 
-    print("\nThank you for playing THE PYTHON BOOK: GHOST CHASE!")
-
-
-# ======================== MAIN PROGRAM ===========================
-
-def main():
-    player_name = introduction()
-    learning_section()
-
-    heading("SOMETHING IS FOLLOWING YOU")
-    print("You finish reading the last chapter.")
-    print("Suddenly, you hear footsteps behind you.")
-    print("A mysterious ghost appears!")
-    print("It wants the Python book you are holding.")
-    print("Escape the castle before it catches you!")
-
-    pause("Press ENTER to begin the escape...")
-
-    play_game()
-    show_results(player_name)
+    print("=" * 65)
+    print("                       END OF THE GAME")
 
 
-# RUN THE GAME
-if __name__ == "__main__":
-    main()
+print("\n" + "=" * 65)
+print("                  THE PURSUIT BEGINS")
+print("=" * 65)
+print("A ghost (multo) appears on Floor 1!")
+print("Start: Floor 3 | Goal: Roof Exit (Floor 17)")
+print("Correct answer: Ghost climbs 1 floor.")
+print("Wrong answer: Ghost climbs 2 floors.")
+print("WARNING: The ghost gets closer after every move!")
+
+input("\nPress ENTER to start...")
+
+# Main game loop
+while not game_over and not escaped:
+
+    print("\n" + "=" * 65)
+    print(f"       PLAYER: FLOOR {player_floor} | GHOST: FLOOR {multo_floor}")
+    print(f"                       SCORE: {score}")
+    print("=" * 65)
+
+    distance = player_floor - multo_floor
+
+    if distance <= 2:
+        print("WARNING! The ghost is dangerously close!")
+
+    possible_moves = [
+        floor for floor in
+        [player_floor - 1, player_floor + 1, player_floor + 2]
+        if 2 <= floor <= exit_floor
+    ]
+
+    print(f"\nAvailable floors: {possible_moves}")
+
+    while True:
+        choice = input("Choose floor number: ")
+
+        if choice.isdigit() and int(choice) in possible_moves:
+            target_floor = int(choice)
+            break
+
+        print("Invalid floor! Choose from the available floors.")
+
+    if target_floor in cleared_floors:
+        player_floor = target_floor
+        print(f"\nFloor {player_floor} is already cleared.")
+        print("You move through the floor safely.")
+        multo_climb = 1
+
+    else:
+        if target_floor == exit_floor:
+            question, answer = boss_question
+            period = "ROOF EXIT"
+            choices = None
+
+            print("\nYou have reached the rooftop!")
+            print("A final boss is guarding the exit...")
+            print("Answer correctly to escape!")
+
+        else:
+            period, question, choices, answer = questions.pop()
+
+        print(f"\n--- FLOOR {target_floor} LOCKED [{period}] ---")
+
+        user_answer = ask_question(question, choices)
+
+        if user_answer == answer:
+            score += 1
+            player_floor = target_floor
+            cleared_floors.append(player_floor)
+            multo_climb = 1
+
+            print("\nCORRECT! Door unlocked.")
+
+            if player_floor == exit_floor:
+                escaped = True
+
+                print("\n" + "=" * 65)
+                print("                     ROOF EXIT UNLOCKED!")
+                print("=" * 65)
+                print(f"{name}, you escaped the abandoned building!")
+                print("You defeated the final boss!")
+                print("The ghost could not catch you.")
+                print("You survived the 17-story nightmare!")
+                break
+
+        else:
+            print(f"\nINCORRECT! Correct answer: {answer}")
+            print("The door is jammed!")
+            print("You cannot move to the next floor.")
+            multo_climb = 2
+
+    # Ghost movement
+    multo_floor += multo_climb
+
+    print(f"\nThe ghost climbs {multo_climb} floor(s).")
+    print(f"The ghost is now on Floor {multo_floor}!")
+
+    # Game-over check
+    if player_floor <= multo_floor:
+        game_over = True
+
+        print("\n" + "=" * 65)
+        print("                       GHOST CAUGHT YOU!")
+        print("=" * 65)
+
+        print(r"""
+                  .-''''''''''-.
+                .'   _      _   '.
+               /    (o)    (o)    \
+              |                 |
+              |       BOO!      |
+              |     \______/    |
+               \               /
+                '.           .'
+                  '-.____.-'
+                     |  |
+                    /    \
+                   /      \
+        """)
+
+        print("The ghost caught you inside the abandoned building.")
+        print("GAME OVER.")
+
+    elif player_floor - multo_floor <= 2:
+        print("\nWARNING! The ghost is getting dangerously close!")
+
+# Final results
+show_results()
